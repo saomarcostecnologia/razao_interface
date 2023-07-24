@@ -114,7 +114,9 @@ class App(ctk.CTk):
     
     def clear(self):
         if hasattr(self, "selected_file_label"):
-            self.selected_file_label.config(text="Nenhum arquivo selecionado.")
+            ctk.CTkLabel(
+            self, text="Nenhum arquivo selecionado.", font=("Century Gothic", 12)
+        ).place(x=50, y=150)
         if hasattr(self, "file_path"):
             self.file_path = None
             

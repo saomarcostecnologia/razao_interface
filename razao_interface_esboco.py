@@ -1,11 +1,16 @@
-import pathlib
-import tkinter.filedialog as filedialog
-from openpyxl import Workbook
+from typing import Optional, Tuple, Union
 import customtkinter as ctk
+from tkinter import *
 from tkinter import messagebox
+import pathlib
+from openpyxl import Workbook, workbook
+import openpyxl, xlrd
+from tkinter import ttk, filedialog
 
+# Setando a aparencia do sistema
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
+
 
 class App(ctk.CTk):
     def __init__(self):
@@ -15,19 +20,8 @@ class App(ctk.CTk):
         self.todo_sistema()
 
     def layout_config(self):
-        self.title_var = ctk.StringVar()  # Variável de controle para o título do layout
-        self.title_var.set("Sistema de Tratamento Equipe Contabilidade - Novonor")
-        self.title(self.title_var.get())  # Define o título inicial
+        self.title("Sistema de Tratamento de Razão - Equipe Contabil Novonor")
         self.geometry("700x500")
-        self.center_window()
-
-    def center_window(self):
-        self.update_idletasks()
-        width = self.winfo_width()
-        height = self.winfo_height()
-        x_offset = (self.winfo_screenwidth() - width) // 2
-        y_offset = (self.winfo_screenheight() - height) // 2
-        self.geometry(f"{width}x{height}+{x_offset}+{y_offset}")
 
     def apperence(self):
         self.lb_apm = ctk.CTkLabel(
@@ -39,18 +33,22 @@ class App(ctk.CTk):
 
     def change_apm(self, nova_aparencia):
         ctk.set_appearance_mode(nova_aparencia)
-
+    
     def select_file(self):
+        # Abre uma janela de diálogo para selecionar um arquivo
         file_path = filedialog.askopenfilename(
             filetypes=[("Arquivos Excel", "*.xlsx *.xls"), ("Todos os arquivos", "*.*")]
         )
+        # Verifica se um arquivo foi selecionado
         if file_path:
-            print("Arquivo selecionado: ", file_path)
+            print("Arquivo selecionado:", file_path)
+             # Atualiza o texto do label com o caminho do arquivo selecionado
             self.selected_file_label = ctk.CTkLabel(
                 self, text="Arquivo selecionado: " + file_path, font=("Century Gothic", 12)
             ).place(x=50, y=150)
-            self.file_path = file_path
+            # Você pode armazenar o caminho do arquivo em uma variável aqui, se necessário.
     
+
     def todo_sistema(self):
         frame = ctk.CTkFrame(
             self,
@@ -63,12 +61,13 @@ class App(ctk.CTk):
 
         title = ctk.CTkLabel(
             frame,
-            text="Sistema de Tratamento de Razão e Balancete - Novonor",
-            font=("Century Gothic", 22),
+            text="Sistema de Tratamento de Razão - Novonor",
+            font=("Century Gothic", 24),
             text_color="#fff",
             bg_color="teal",
-        ).place(x=35, y=25)
+        ).place(x=50, y=20)
 
+        #Adicionar o botão de seleção de arquivo
         btn_select_file = ctk.CTkButton(
             self, 
             text="Selecionar Arquivo", 
@@ -82,66 +81,83 @@ class App(ctk.CTk):
             text_color=["#000", "#fff"],
         ).place(x=50, y=70)
 
+        # Combo box Balancete ou Razão
         self.mode_box = ctk.CTkComboBox(
             self,
             values=["Razão", "Balancete"],
             font=("Century Gothic", 14),
-            dropdown_font=("Century Gothic", 14),
+            dropdown_font= ("Century Gothic", 14),
             state="readonly",  # Configurando o combobox para ser somente leitura
-            corner_radius=20
+            corner_radius= 20
         )
         self.mode_box.set("Razão")
         self.mode_box.place(x=550, y=70)
-        
+
+        # Adicionar o botão para executar o tratamento do arquivo
         btn_execute = ctk.CTkButton(
             self, text="Executar Tratamento".upper(), 
-            command=self.submit,
+            command= self.submit,
             fg_color="#151",
             hover_color="#131",
         ).place(x=520, y=465)
+        
+        btn_execute = ctk.CTkButton(
+            self,
+            text="Limpar Campos".upper(),
+            command=self.clear,
+            fg_color="#555",
+            hover_color="#333",
+        ).place(x=355, y=465)   
 
-        btn_clear_selection = ctk.CTkButton(
-        self,
-        text="Limpar Seleção".upper(),
-        command=self.clear_file_selection,
-        fg_color="#555",
-        hover_color="#333",
-        ).place(x=355, y=465)
+        # Adicionar o label para exibir o caminho do arquivo selecionado
+        selected_file_label = ctk.CTkLabel(
+            self, text="Nenhum arquivo selecionado.", font=("Century Gothic", 12)
+        ).place(x=50, y=150)
 
+    #Funções
     def submit(self):
+        # Verifica se um arquivo foi selecionado
         if hasattr(self, 'file_path') and self.file_path:
             print("Executando tratamento para o arquivo:", self.file_path)
+            
+            # Obtém o valor selecionado no combobox
             selected_mode = self.mode_box.get()
             print(selected_mode)
+            
+            # Executa o tratamento de acordo com o valor selecionado
             if selected_mode == "Razão":
+                # Executa o tratamento para o modo Razão
                 self.tratar_arquivo_razao()
             elif selected_mode == "Balancete":
+                # Executa o tratamento para o modo Balancete
                 self.tratar_arquivo_balancete()
             else:
+                # Caso ocorra algum valor inesperado no combobox
                 print("Modo inválido selecionado.")
+                
         else:
             messagebox.showerror(
                 "Erro",
                 "Nenhum arquivo selecionado. Selecione um arquivo antes de executar o tratamento.",
             )
 
-    def clear_file_selection(self):
-        if hasattr(self, "selected_file_label"):
-            ctk.CTkLabel(
-            self, 
-            text="Nenhum arquivo selecionado."+(" ")*200, 
-            font=("Century Gothic", 12),
-        ).place(x=50, y=150)
-        if hasattr(self, "file_path"):
-            self.file_path = None
-            print(self.file_path)
-        messagebox.showinfo("Limpeza Concluída", "Seleção de arquivo limpa!")
-
     def tratar_arquivo_razao(self):
+        # Aqui você pode colocar o código para tratar o arquivo no modo Razão
         print("Tratando arquivo no modo Razão...")
 
     def tratar_arquivo_balancete(self):
+        # Aqui você pode colocar o código para tratar o arquivo no modo Balancete
         print("Tratando arquivo no modo Balancete...")
+    
+    def clear(self):
+        if hasattr(self, "selected_file_label"):
+            ctk.CTkLabel(
+            self, text="Nenhum arquivo selecionado.", font=("Century Gothic", 12)
+        ).place(x=50, y=150)
+        if hasattr(self, "file_path"):
+            self.file_path = None
+            
+
 
 if __name__ == "__main__":
     app = App()

@@ -3,6 +3,8 @@ import tkinter.filedialog as filedialog
 from openpyxl import Workbook
 import customtkinter as ctk
 from tkinter import messagebox
+import balancete_tratamento as bt
+import razao_tratamento as rt
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
@@ -130,18 +132,36 @@ class App(ctk.CTk):
             ctk.CTkLabel(
             self, 
             text="Nenhum arquivo selecionado."+(" ")*200, 
-            font=("Century Gothic", 12),
-        ).place(x=50, y=150)
+            font=("Century Gothic", 12),).place(x=50, y=150)  
         if hasattr(self, "file_path"):
             self.file_path = None
             print(self.file_path)
         messagebox.showinfo("Limpeza Concluída", "Seleção de arquivo limpa!")
 
     def tratar_arquivo_razao(self):
-        print("Tratando arquivo no modo Razão...")
+        try:
+            # Realizar o tratamento do arquivo e obter o caminho do arquivo tratado
+            rt.tratar_razao(self.file_path)
+            print("Tratando arquivo no modo Razão...")
+            messagebox.showinfo("Sucesso", "O arquivo foi tratado com sucesso! ")
+            self.clear_file_selection()
+            return True
+        except Exception as e:
+            print("Ocorreu um erro durante o tratamento do arquivo:", str(e))
+            messagebox.showwarning("Erro", "Ocorreu um erro durante o tratamento do arquivo. ")
+            return False
 
     def tratar_arquivo_balancete(self):
-        print("Tratando arquivo no modo Balancete...")
+        try:
+            bt.tratar_balancete(self.file_path)
+            messagebox.showinfo("Sucesso", "O arquivo foi tratado com sucesso! ")
+            self.clear_file_selection()
+            print("Tratando arquivo no modo Balancete...")
+            return True
+        except Exception as a:
+            messagebox.showwarning("Erro", "Ocorreu um erro durante o tratamento do arquivo. ")
+            print("Ocorreu um erro durante o tratamento do arquivo:", str(a))
+            return False
 
 if __name__ == "__main__":
     app = App()
